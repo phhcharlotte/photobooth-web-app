@@ -4,12 +4,14 @@
  * chi can sua trong file nay, khong can dong vao logic o noi khac.
  */
 
-/** So giay dem nguoc truoc moi lan chup (mac dinh: 15s) */
-export const COUNTDOWN_SECONDS = 15;
+/** So giay dem nguoc truoc moi lan chup (mac dinh: 10s) */
+export const COUNTDOWN_SECONDS = 10;
 
-/** Tong so kieu anh chup trong 1 phien (mac dinh: 10 kieu) */
-export const TOTAL_SHOTS = 10;
+/** So kieu chup mac dinh khi vao man hinh chon layout (nguoi dung co the doi trong o select) */
+export const DEFAULT_TOTAL_SHOTS = 6;
 
+/** So kieu chup toi da nguoi dung duoc phep chon */
+export const MAX_TOTAL_SHOTS = 10;
 /** So anh dep nhat nguoi dung phai chon o buoc "Review" de dat vao khung,
  * key la loai layout (1/2/4/6), value la so anh can chon = dung bang so o cua layout do */
 export const REQUIRED_PICKS: Record<number, number> = {

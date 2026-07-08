@@ -1,9 +1,21 @@
 import { useState } from "react";
+import { Button, Steps, Typography } from "antd";
+import {
+  CameraOutlined,
+  CheckCircleFilled,
+  FolderOpenOutlined,
+} from "@ant-design/icons";
 import LayoutSelector from "./components/LayoutSelector";
 import CaptureSession from "./components/CaptureSession";
 import ReviewGallery from "./components/ReviewGallery";
 import FrameComposer from "./components/FrameComposer";
+import { DEFAULT_TOTAL_SHOTS } from "./config";
 import { CapturedPhoto, LayoutType, Screen, SessionResult } from "./types";
+
+const { Title, Paragraph } = Typography;
+
+const STEP_ORDER: Screen[] = ["layout", "capture", "review", "compose"];
+const STEP_TITLES = ["Bố cục", "Chụp ảnh", "Chọn ảnh", "Ghép khung"];
 
 function FilmRail() {
   return (
@@ -18,6 +30,7 @@ function FilmRail() {
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [layout, setLayout] = useState<LayoutType | null>(null);
+  const [shotCount, setShotCount] = useState<number>(DEFAULT_TOTAL_SHOTS);
   const [sessionPhotos, setSessionPhotos] = useState<CapturedPhoto[]>([]);
   const [videoPath, setVideoPath] = useState<string | null>(null);
   const [pickedPhotos, setPickedPhotos] = useState<CapturedPhoto[]>([]);
@@ -25,6 +38,7 @@ export default function App() {
 
   function resetAll() {
     setLayout(null);
+    setShotCount(DEFAULT_TOTAL_SHOTS);
     setSessionPhotos([]);
     setVideoPath(null);
     setPickedPhotos([]);
@@ -38,52 +52,74 @@ export default function App() {
     setScreen("review");
   }
 
+  const currentStepIndex = STEP_ORDER.indexOf(screen);
+
   return (
     <div className="app-shell">
       <FilmRail />
 
       <div className="app-content">
         <header className="marquee-header">
-          <div className="marquee-title">
-            <span className="bulb" />
+          <div className="marquee-header__title">
+            <span className="marquee-header__bulb" />
             PHOTOBOOTH
           </div>
-          <div className="marquee-sub">
-            {screen === "home" && "San sang cho buoi chup cua ban"}
-            {screen === "layout" && "Chon bo cuc khung anh"}
-            {screen === "capture" && "Dang chup tu dong"}
-            {screen === "review" && "Chon anh dep nhat"}
-            {screen === "compose" && "Ghep khung vien"}
-            {screen === "done" && "Hoan tat!"}
-          </div>
+
+          {currentStepIndex !== -1 && (
+            <div className="marquee-header__steps">
+              <Steps
+                current={currentStepIndex}
+                size="small"
+                items={STEP_TITLES.map((t) => ({ title: t }))}
+              />
+            </div>
+          )}
         </header>
 
         {screen === "home" && (
           <div className="screen">
             <div className="home-hero" />
-            <div className="eyebrow">Chao mung</div>
-            <h1 className="headline">Photobooth cua rieng ban</h1>
-            <p className="subline">
-              Tu dong dem nguoc 15 giay cho moi kieu, chup lien tuc 10 kieu va quay video toan bo buoi
-              chup. Anh va video se duoc luu truc tiep vao may tinh cua ban.
-            </p>
-            <button className="btn btn-primary" onClick={() => setScreen("layout")}>
-              Bat dau
-            </button>
+            <div className="eyebrow">Chào mừng</div>
+            <Title level={2} style={{ margin: 0, textAlign: "center" }}>
+              Photobooth của riêng bạn
+            </Title>
+            <Paragraph
+              style={{
+                maxWidth: 520,
+                textAlign: "center",
+                color: "var(--lilac, #a79cc0)",
+              }}>
+              Tự động đếm ngược cho mọi kiểu, chụp liên tục nhiều kiểu và quay
+              video toàn bộ buổi chụp. Ảnh và video sẽ được lưu trực tiếp vào
+              máy tính của bạn.
+            </Paragraph>
+            <Button
+              type="primary"
+              size="large"
+              icon={<CameraOutlined />}
+              onClick={() => setScreen("layout")}>
+              Bắt đầu
+            </Button>
           </div>
         )}
 
         {screen === "layout" && (
           <LayoutSelector
             value={layout}
+            shotCount={shotCount}
             onSelect={setLayout}
+            onShotCountChange={setShotCount}
             onConfirm={() => setScreen("capture")}
             onBack={() => setScreen("home")}
           />
         )}
 
         {screen === "capture" && (
-          <CaptureSession onComplete={handleSessionComplete} onCancel={resetAll} />
+          <CaptureSession
+            totalShots={shotCount}
+            onComplete={handleSessionComplete}
+            onCancel={resetAll}
+          />
         )}
 
         {screen === "review" && layout && (
@@ -112,18 +148,32 @@ export default function App() {
 
         {screen === "done" && (
           <div className="screen">
-            <div className="done-check">✓</div>
-            <h1 className="headline">Da luu xong!</h1>
-            <p className="subline">Anh ghep, tung tam anh va video buoi chup da duoc luu vao may tinh.</p>
+            <div className="done-check">
+              <CheckCircleFilled />
+            </div>
+            <Title level={2} style={{ margin: 0 }}>
+              Đã lưu xong!
+            </Title>
+            <Paragraph
+              style={{
+                maxWidth: 480,
+                textAlign: "center",
+                color: "var(--lilac, #a79cc0)",
+              }}>
+              Ảnh ghép, từng tấm ảnh và video buổi chụp đã được lưu vào máy tính
+              của b.
+            </Paragraph>
             {exportPath && <div className="path-chip">{exportPath}</div>}
             {videoPath && <div className="path-chip">{videoPath}</div>}
-            <div className="btn-row">
-              <button className="btn btn-ghost" onClick={() => window.electronAPI.openOutputFolder()}>
-                Mo thu muc luu tru
-              </button>
-              <button className="btn btn-primary" onClick={resetAll}>
-                Chup phien moi
-              </button>
+            <div style={{ display: "flex", gap: 12 }}>
+              <Button
+                icon={<FolderOpenOutlined />}
+                onClick={() => window.electronAPI.openOutputFolder()}>
+                Mở thư mục lưu trữ
+              </Button>
+              <Button type="primary" onClick={resetAll}>
+                Chụp ảnh mới
+              </Button>
             </div>
           </div>
         )}

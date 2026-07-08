@@ -1,0 +1,515 @@
+// =========================================================================
+// PHOTOBOOTH — bien mau dung chung
+// LUU Y: cac gia tri nay phai khop voi token truyen vao ConfigProvider
+// trong main.tsx (phan theme.token). Doi o day thi nho doi ben do theo.
+// =========================================================================
+$curtain: #14111a;
+$velvet: #221a2c;
+$velvet-2: #2b2136;
+$marquee: #ffb43c;
+$marquee-soft: #ffd48a;
+$strip-red: #ff4d5e;
+$flash-white: #fdf8ef;
+$lilac: #a79cc0;
+$lilac-dim: #6f6580;
+$line: rgba(253, 248, 239, 0.08);
+
+$font-display:
+  "Arial Black", "Segoe UI Black", "Helvetica Neue", Arial, sans-serif;
+$font-mono: "Courier New", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(ellipse at top, #1c1624 0%, $curtain 60%);
+  color: $flash-white;
+  font-family: system-ui, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+// -------------------------------------------------------------------------
+// Khung ung dung + dai "phim" co lo tia tren/duoi
+// -------------------------------------------------------------------------
+.app-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.filmstrip-rail {
+  height: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 24px;
+  background: #0c0a11;
+
+  span {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: rgba(253, 248, 239, 0.14);
+    flex-shrink: 0;
+  }
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+// -------------------------------------------------------------------------
+// Header marquee
+// -------------------------------------------------------------------------
+.marquee-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 40px;
+  border-bottom: 1px solid $line;
+  flex-shrink: 0;
+
+  &__title {
+    font-family: $font-display;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 20px;
+    color: $flash-white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+
+  &__bulb {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: $marquee;
+    box-shadow: 0 0 10px 2px rgba(255, 180, 60, 0.65);
+    animation: bulb-glow 1.8s ease-in-out infinite;
+  }
+
+  &__steps {
+    flex: 1;
+    max-width: 460px;
+  }
+}
+
+@keyframes bulb-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// -------------------------------------------------------------------------
+// Layout chung cho tung man hinh
+// -------------------------------------------------------------------------
+.screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 40px;
+  gap: 22px;
+}
+
+.screen-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 28px 40px 44px;
+}
+
+.eyebrow {
+  font-family: $font-mono;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: $marquee;
+}
+
+// -------------------------------------------------------------------------
+// Man hinh Home
+// -------------------------------------------------------------------------
+.home-hero {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    $marquee-soft,
+    $marquee 55%,
+    #a86c14 100%
+  );
+  box-shadow: 0 0 40px rgba(255, 180, 60, 0.35);
+}
+
+// -------------------------------------------------------------------------
+// Chon layout (1 / 2 / 4 / 6)
+// -------------------------------------------------------------------------
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 168px);
+  gap: 20px;
+}
+
+.layout-card {
+  background: $velvet;
+  border: 1px solid $line;
+  border-radius: 16px;
+  padding: 18px 16px 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    border-color: $marquee;
+    transform: translateY(-3px);
+    background: $velvet-2;
+  }
+
+  &.selected {
+    border-color: $marquee;
+    background: $velvet-2;
+    box-shadow: 0 0 0 1px $marquee;
+
+    .layout-card__label {
+      color: $marquee;
+    }
+  }
+
+  &__preview {
+    width: 100px;
+    height: 130px;
+    display: grid;
+    gap: 4px;
+    padding: 6px;
+    background: #0c0a11;
+    border-radius: 8px;
+
+    .slot {
+      background: linear-gradient(160deg, #3a2f47, #241c2f);
+      border-radius: 3px;
+    }
+  }
+
+  &__label {
+    font-family: $font-mono;
+    font-size: 13px;
+    color: $lilac;
+  }
+}
+
+.shotcount-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: $velvet;
+  border: 1px solid $line;
+  border-radius: 12px;
+  padding: 14px 20px;
+
+  &__label {
+    font-family: $font-mono;
+    font-size: 13px;
+    color: $lilac;
+    white-space: nowrap;
+  }
+}
+
+// -------------------------------------------------------------------------
+// Man hinh Capture
+// -------------------------------------------------------------------------
+.capture-stage {
+  position: relative;
+  width: min(760px, 90vw);
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid $line;
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); // guong cho tu nhien
+  }
+}
+
+.rec-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $strip-red;
+    animation: rec-pulse 1s ease-in-out infinite;
+  }
+}
+
+@keyframes rec-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.shot-counter {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(10, 8, 14, 0.65);
+  font-family: $font-mono;
+  font-size: 13px;
+  color: $flash-white;
+}
+
+.countdown-ring-wrap {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 8, 14, 0.55);
+  border-radius: 50%;
+  padding: 6px;
+}
+
+.flash-overlay {
+  position: absolute;
+  inset: 0;
+  background: $flash-white;
+  opacity: 0;
+  pointer-events: none;
+
+  &.active {
+    opacity: 1;
+    transition: opacity 0.08s ease-in;
+  }
+
+  &.fading {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+}
+
+.capture-overlay-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+
+  &--dim {
+    background: rgba(12, 10, 17, 0.7);
+  }
+}
+
+.pose-hint {
+  font-family: $font-mono;
+  color: $lilac;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+// -------------------------------------------------------------------------
+// Review gallery
+// -------------------------------------------------------------------------
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 980px;
+}
+
+.review-thumb {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid $line;
+  cursor: pointer;
+  aspect-ratio: 4 / 3;
+  background: #000;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+
+  &.picked {
+    border-color: $marquee;
+  }
+
+  &__badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+  }
+}
+
+// -------------------------------------------------------------------------
+// Frame composer
+// -------------------------------------------------------------------------
+.compose-layout {
+  display: flex;
+  gap: 36px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.compose-canvas-wrap {
+  flex-shrink: 0;
+  background: #0c0a11;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid $line;
+
+  canvas {
+    width: 300px;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+  }
+}
+
+.compose-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.side-block-title {
+  font-family: $font-mono;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $lilac;
+  margin-bottom: 10px;
+}
+
+.frame-lib-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.frame-lib-item {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  border: 2px solid $line;
+  background: repeating-conic-gradient(#2a2334 0% 25%, #221c2b 0% 50%) 50% /
+    16px 16px;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &.selected {
+    border-color: $marquee;
+  }
+
+  &__empty-label {
+    font-size: 11px;
+    color: $lilac;
+    text-align: center;
+    padding: 4px;
+  }
+
+  &__delete {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+}
+
+.no-frame-note {
+  font-size: 12px;
+  color: $lilac-dim;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
+// -------------------------------------------------------------------------
+// Man hinh Done
+// -------------------------------------------------------------------------
+.done-check {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $marquee;
+  color: #201406;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+
+.path-chip {
+  font-family: $font-mono;
+  font-size: 12px;
+  color: $lilac;
+  background: $velvet;
+  border: 1px solid $line;
+  border-radius: 8px;
+  padding: 8px 14px;
+  max-width: 560px;
+  overflow-wrap: anywhere;
+  text-align: center;
+}

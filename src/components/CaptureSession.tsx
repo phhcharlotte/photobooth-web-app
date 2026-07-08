@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from "react";
+import { Button, Progress, Spin, Tag, Typography } from "antd";
+import { VideoCameraOutlined } from "@ant-design/icons";
 import {
   COUNTDOWN_SECONDS,
   FLASH_DURATION_MS,
-  TOTAL_SHOTS,
   VIDEO_BITRATE,
   VIDEO_HEIGHT,
   VIDEO_WIDTH,
 } from "../config";
 import { CapturedPhoto, SessionResult } from "../types";
 
+const { Title } = Typography;
+
 interface Props {
+  totalShots: number;
   onComplete: (result: SessionResult) => void;
   onCancel: () => void;
 }
@@ -17,7 +21,7 @@ interface Props {
 const POSE_HINTS = [
   "San sang...",
   "Tao dang tu nhien nhe!",
-  "Cuoi that tuoi ✨",
+  "Cuoi that tuoi",
   "Doi goc nghieng nao",
   "Nhin thang ong kinh",
   "Tao dang vui nhon",
@@ -39,7 +43,11 @@ function pickMimeType(): string {
   return "video/webm";
 }
 
-export default function CaptureSession({ onComplete, onCancel }: Props) {
+export default function CaptureSession({
+  totalShots,
+  onComplete,
+  onCancel,
+}: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -51,7 +59,9 @@ export default function CaptureSession({ onComplete, onCancel }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [shotIndex, setShotIndex] = useState(0);
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
-  const [flashState, setFlashState] = useState<"idle" | "active" | "fading">("idle");
+  const [flashState, setFlashState] = useState<"idle" | "active" | "fading">(
+    "idle",
+  );
   const [finishing, setFinishing] = useState(false);
 
   // ---- Khoi dong camera + bat dau ghi hinh video ----
@@ -88,7 +98,7 @@ export default function CaptureSession({ onComplete, onCancel }: Props) {
       } catch (err) {
         console.error(err);
         setError(
-          "Khong the truy cap camera/micro. Hay kiem tra quyen truy cap camera cho ung dung trong Settings."
+          "Khong the truy cap camera/micro. Hay kiem tra quyen truy cap camera cho ung dung trong Settings.",
         );
       }
     }
@@ -108,7 +118,7 @@ export default function CaptureSession({ onComplete, onCancel }: Props) {
   // ---- Vong dem nguoc cho tung kieu chup ----
   useEffect(() => {
     if (!ready || finishing) return;
-    if (shotIndex >= TOTAL_SHOTS) {
+    if (shotIndex >= totalShots) {
       finalizeSession();
       return;
     }
@@ -139,15 +149,22 @@ export default function CaptureSession({ onComplete, onCancel }: Props) {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const dataUrl = canvas.toDataURL("image/png");
-    const photo: CapturedPhoto = { id: `shot-${shotIndex}-${Date.now()}`, dataUrl };
+    const photo: CapturedPhoto = {
+      id: `shot-${shotIndex}-${Date.now()}`,
+      dataUrl,
+    };
     photosRef.current = [...photosRef.current, photo];
 
     // Luu anh xuong may ngay lap tuc (khong cho nguoi dung phai bam luu)
     window.electronAPI
-      .saveMedia({ kind: "photo", data: dataUrl, fileNameHint: `shot-${shotIndex + 1}` })
+      .saveMedia({
+        kind: "photo",
+        data: dataUrl,
+        fileNameHint: `shot-${shotIndex + 1}`,
+      })
       .then((res) => {
         photosRef.current = photosRef.current.map((p) =>
-          p.id === photo.id ? { ...p, savedPath: res.path } : p
+          p.id === photo.id ? { ...p, savedPath: res.path } : p,
         );
       })
       .catch((e) => console.error("Loi luu anh:", e));
@@ -172,7 +189,9 @@ export default function CaptureSession({ onComplete, onCancel }: Props) {
       }
       recorder.onstop = async () => {
         try {
-          const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "video/webm" });
+          const blob = new Blob(chunksRef.current, {
+            type: recorder.mimeType || "video/webm",
+          });
           const arrayBuffer = await blob.arrayBuffer();
           const res = await window.electronAPI.saveMedia({
             kind: "video",
@@ -193,93 +212,77 @@ export default function CaptureSession({ onComplete, onCancel }: Props) {
     onComplete({ photos: photosRef.current, videoPath });
   }
 
-  const pct = ((COUNTDOWN_SECONDS - countdown) / COUNTDOWN_SECONDS) * 100;
+  const pct = Math.round(
+    ((COUNTDOWN_SECONDS - countdown) / COUNTDOWN_SECONDS) * 100,
+  );
 
   return (
     <div className="screen">
       <div className="eyebrow">Buoc 2 / 4</div>
-      <h1 className="headline">Dang chup — giu nguyen nu cuoi!</h1>
-      <p className="pose-hint">{POSE_HINTS[Math.min(shotIndex, POSE_HINTS.length - 1)]}</p>
+      <Title level={2} style={{ margin: 0, textAlign: "center" }}>
+        Dang chup — giu nguyen nu cuoi!
+      </Title>
+      <p className="pose-hint">
+        {POSE_HINTS[Math.min(shotIndex, POSE_HINTS.length - 1)]}
+      </p>
 
       <div className="capture-stage">
         <video ref={videoRef} muted playsInline />
         <canvas ref={canvasRef} style={{ display: "none" }} />
 
         <div className="rec-badge">
-          <span className="rec-dot" />
-          REC
+          <Tag color="error" icon={<VideoCameraOutlined />}>
+            <span className="rec-badge__dot" style={{ display: "none" }} />
+            REC
+          </Tag>
         </div>
         <div className="shot-counter">
-          {Math.min(shotIndex + 1, TOTAL_SHOTS)} / {TOTAL_SHOTS}
+          {Math.min(shotIndex + 1, totalShots)} / {totalShots}
         </div>
 
         {!finishing && (
           <div className="countdown-ring-wrap">
-            <div className="countdown-ring" style={{ ["--pct" as any]: pct }}>
-              <div className="countdown-ring-inner">{countdown}</div>
-            </div>
+            <Progress
+              type="circle"
+              size={78}
+              percent={pct}
+              format={() => (
+                <span style={{ fontFamily: "monospace", fontSize: 26 }}>
+                  {countdown}
+                </span>
+              )}
+              strokeColor="#ffb43c"
+              trailColor="rgba(255,255,255,0.12)"
+            />
           </div>
         )}
 
-        <div className={`flash-overlay ${flashState !== "idle" ? flashState : ""}`} />
+        <div
+          className={`flash-overlay ${flashState !== "idle" ? flashState : ""}`}
+        />
 
         {!ready && !error && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-              gap: 12,
-            }}
-          >
-            <div className="spinner" />
+          <div className="capture-overlay-center">
+            <Spin size="large" />
             <span className="pose-hint">Dang khoi dong camera...</span>
           </div>
         )}
 
         {error && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 24,
-              textAlign: "center",
-            }}
-          >
-            <span className="subline">{error}</span>
+          <div className="capture-overlay-center">
+            <span className="pose-hint">{error}</span>
           </div>
         )}
 
         {finishing && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-              gap: 12,
-              background: "rgba(12, 10, 17, 0.7)",
-            }}
-          >
-            <div className="spinner" />
+          <div className="capture-overlay-center capture-overlay-center--dim">
+            <Spin size="large" />
             <span className="pose-hint">Dang luu video, cho chut...</span>
           </div>
         )}
       </div>
 
-      <div className="btn-row">
-        <button className="btn btn-ghost" onClick={onCancel}>
-          Huy phien chup
-        </button>
-      </div>
+      <Button onClick={onCancel}>Huy phien chup</Button>
     </div>
   );
 }

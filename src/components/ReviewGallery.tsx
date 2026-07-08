@@ -1,6 +1,10 @@
 import { useState } from "react";
+import { Badge, Button, Space, Typography } from "antd";
+import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
 import { REQUIRED_PICKS } from "../config";
 import { CapturedPhoto, LayoutType } from "../types";
+
+const { Title, Paragraph, Text } = Typography;
 
 interface Props {
   photos: CapturedPhoto[];
@@ -9,7 +13,12 @@ interface Props {
   onBack: () => void;
 }
 
-export default function ReviewGallery({ photos, layout, onConfirm, onBack }: Props) {
+export default function ReviewGallery({
+  photos,
+  layout,
+  onConfirm,
+  onBack,
+}: Props) {
   const required = REQUIRED_PICKS[layout] ?? 1;
   const [picked, setPicked] = useState<string[]>([]);
 
@@ -31,17 +40,35 @@ export default function ReviewGallery({ photos, layout, onConfirm, onBack }: Pro
   }
 
   return (
-    <div className="screen-scroll" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
+    <div
+      className="screen-scroll"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 24,
+      }}>
       <div style={{ textAlign: "center" }}>
         <div className="eyebrow">Buoc 3 / 4</div>
-        <h1 className="headline">Chon anh ung y nhat</h1>
-        <p className="subline">
-          Khung ban chon co <strong>{required}</strong> o anh. Hay chon dung {required} kieu dep nhat
-          trong 10 kieu vua chup — thu tu ban chon se la thu tu dat vao khung.
-        </p>
-        <p className="pick-status">
-          Da chon <strong>{picked.length}</strong> / {required}
-        </p>
+        <Title level={2} style={{ margin: "6px 0 2px" }}>
+          Chon anh ung y nhat
+        </Title>
+        <Paragraph style={{ maxWidth: 520, color: "var(--lilac, #a79cc0)" }}>
+          Khung ban chon co{" "}
+          <Text strong style={{ color: "#ffb43c" }}>
+            {required}
+          </Text>{" "}
+          o anh. Hay chon dung {required} kieu dep nhat — thu tu ban chon se la
+          thu tu dat vao khung.
+        </Paragraph>
+        <Text
+          style={{ fontFamily: "monospace", color: "var(--lilac, #a79cc0)" }}>
+          Da chon{" "}
+          <Text strong style={{ color: "#ffb43c" }}>
+            {picked.length}
+          </Text>{" "}
+          / {required}
+        </Text>
       </div>
 
       <div className="review-grid">
@@ -52,23 +79,34 @@ export default function ReviewGallery({ photos, layout, onConfirm, onBack }: Pro
             <div
               key={photo.id}
               className={`review-thumb ${isPicked ? "picked" : ""}`}
-              onClick={() => toggle(photo.id)}
-            >
+              onClick={() => toggle(photo.id)}>
               <img src={photo.dataUrl} alt="Kieu anh da chup" />
-              {isPicked && <div className="pick-badge">{order + 1}</div>}
+              {isPicked && (
+                <Badge
+                  count={order + 1}
+                  color="#ffb43c"
+                  className="review-thumb__badge"
+                  style={{ color: "#201406", fontWeight: 700 }}
+                />
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="btn-row">
-        <button className="btn btn-ghost" onClick={onBack}>
-          Chup lai tu dau
-        </button>
-        <button className="btn btn-primary" disabled={!canConfirm} onClick={handleConfirm}>
-          Ghep vao khung →
-        </button>
-      </div>
+      <Space>
+        <Button icon={<ArrowLeftOutlined />} onClick={onBack}>
+          Chụp lại từ đầu
+        </Button>
+        <Button
+          type="primary"
+          disabled={!canConfirm}
+          onClick={handleConfirm}
+          iconPosition="end"
+          icon={<ArrowRightOutlined />}>
+          Ghép vào khung
+        </Button>
+      </Space>
     </div>
   );
 }
