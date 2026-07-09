@@ -161,7 +161,7 @@ export default function App() {
                 color: "var(--lilac, #a79cc0)",
               }}>
               Ảnh ghép, từng tấm ảnh và video buổi chụp đã được lưu vào máy tính
-              của b.
+              của bạn.
             </Paragraph>
             {exportPath && <div className="path-chip">{exportPath}</div>}
             {videoPath && <div className="path-chip">{videoPath}</div>}

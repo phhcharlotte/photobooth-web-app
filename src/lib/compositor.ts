@@ -148,7 +148,7 @@ export async function cropFrameToCanvasAspect(
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Khong lay duoc context 2D");
+  if (!ctx) throw new Error("Không lấy được context 2D");
 
   const targetRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
   const srcRatio = img.width / img.height;
@@ -186,7 +186,7 @@ export async function composeFinalImage(
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Khong lay duoc context 2D");
+  if (!ctx) throw new Error("Không lấy được context 2D");
 
   // Nen trang lam giay in
   ctx.fillStyle = "#ffffff";

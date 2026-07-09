@@ -73,7 +73,7 @@ export default function FrameComposer({
       setLibrary((prev) => [asset, ...prev]);
       setSelectedFrame(asset);
     } catch (e) {
-      console.error("Loi xu ly khung vien:", e);
+      console.error("Lỗi xử lý khung viền:", e);
     } finally {
       setUploading(false);
     }
@@ -115,9 +115,9 @@ export default function FrameComposer({
         <img src={asset.dataUrl} alt={asset.name} />
         {deletable && (
           <Popconfirm
-            title="Xoa khung vien nay?"
-            okText="Xoa"
-            cancelText="Thoi"
+            title="Xoá khung viền này?"
+            okText="Xoá"
+            cancelText="Thôi"
             onConfirm={(e) => {
               e?.stopPropagation();
               handleDeleteFrame(asset);
@@ -149,11 +149,11 @@ export default function FrameComposer({
       <div style={{ textAlign: "center" }}>
         <div className="eyebrow">Buoc 4 / 4</div>
         <Title level={2} style={{ margin: "6px 0 2px" }}>
-          Ghep khung vien
+          Ghép khung viền
         </Title>
         <Paragraph style={{ maxWidth: 520, color: "var(--lilac, #a79cc0)" }}>
-          Chon 1 khung mau co san, hoac tai anh khung vien rieng tu may tinh —
-          anh se duoc tu dong cat cho khop ty le khung in, khong bi meo.
+          Chọn khung mẫu có sẵn, hoặc tải từ máy tính của bạn — ảnh sẽ tự động
+          cắt theo khung hình.
         </Paragraph>
       </div>
 
@@ -164,20 +164,20 @@ export default function FrameComposer({
 
         <div className="compose-side">
           <div>
-            <div className="side-block-title">Khung mau co san</div>
+            <div className="side-block-title">Khung mẫu có sẵn</div>
             <div className="frame-lib-grid">
               <div
                 className={`frame-lib-item ${!selectedFrame ? "selected" : ""}`}
                 onClick={() => setSelectedFrame(null)}
-                title="Khong dung khung vien">
-                <div className="frame-lib-item__empty-label">Khong khung</div>
+                title="Không dùng khung viền">
+                <div className="frame-lib-item__empty-label">Không khung</div>
               </div>
               {BUILT_IN_FRAMES.map(renderFrameTile)}
             </div>
           </div>
 
           <div>
-            <div className="side-block-title">Khung rieng cua ban</div>
+            <div className="side-block-title">Khung riêng của bạn</div>
             <Button
               block
               type="dashed"
@@ -186,16 +186,14 @@ export default function FrameComposer({
               loading={uploading}
               onClick={handleUploadFrame}
               style={{ marginBottom: 12 }}>
-              {uploading
-                ? "Dang xu ly anh..."
-                : "Tai anh khung vien tu may tinh"}
+              {uploading ? "Đang xử lý ảnh..." : "Tải ảnh từ máy tính"}
             </Button>
 
             {loadingLib ? (
               <Spin />
             ) : library.length === 0 ? (
               <Empty
-                description="Chua co khung nao ban tu tai len"
+                description="Chưa có khung nào được tải lên"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               />
             ) : (
@@ -205,22 +203,21 @@ export default function FrameComposer({
             )}
 
             <Paragraph className="no-frame-note">
-              Goi y: dung file PNG nen trong suot se dep nhat — anh se tu dong
-              duoc cat vua ty le khung in (2:3), phan giua van trong suot de lo
-              anh chup.
+              Gợi ý: dùng file PNG nền trong suốt sẽ đẹp nhất — ảnh sẽ tự động
+              được cắt vừa tỉ lệ khung (2:3)
             </Paragraph>
           </div>
 
           <Space>
             <Button icon={<ArrowLeftOutlined />} onClick={onBack}>
-              Quay lai chon anh
+              Quay lại chọn ảnh
             </Button>
             <Button
               type="primary"
               icon={<ExportOutlined />}
               loading={exporting}
               onClick={handleExport}>
-              {exporting ? "Dang luu..." : "Xuat anh hoan chinh"}
+              {exporting ? "Đang lưu..." : "Xuất ảnh"}
             </Button>
           </Space>
         </div>

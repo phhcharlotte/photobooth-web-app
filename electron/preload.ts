@@ -20,14 +20,23 @@ const electronAPI = {
     mime?: string;
   }): Promise<SaveMediaResult> => ipcRenderer.invoke("save-media", payload),
 
-  /** Mo hop thoai chon anh khung vien tu may tinh */
-  selectFrameImage: (): Promise<FrameAsset | null> => ipcRenderer.invoke("select-frame-image"),
+  /** Mo hop thoai chon 1 file anh khung vien tu may tinh (chua qua xu ly) */
+  pickFrameFile: (): Promise<{ name: string; dataUrl: string } | null> =>
+    ipcRenderer.invoke("pick-frame-file"),
+
+  /** Luu 1 anh khung vien da xu ly (da crop dung ty le o renderer) vao thu vien */
+  saveFrameAsset: (payload: {
+    dataUrl: string;
+    name: string;
+  }): Promise<FrameAsset> => ipcRenderer.invoke("save-frame-asset", payload),
 
   /** Lay danh sach khung vien da tung upload */
-  getFramesLibrary: (): Promise<FrameAsset[]> => ipcRenderer.invoke("get-frames-library"),
+  getFramesLibrary: (): Promise<FrameAsset[]> =>
+    ipcRenderer.invoke("get-frames-library"),
 
   /** Xoa 1 khung vien khoi thu vien */
-  deleteFrame: (filePath: string): Promise<boolean> => ipcRenderer.invoke("delete-frame", filePath),
+  deleteFrame: (filePath: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-frame", filePath),
 
   /** Mo thu muc luu tru trong File Explorer / Finder */
   openOutputFolder: (kind?: "photo" | "video" | "export"): Promise<void> =>
