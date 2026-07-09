@@ -48,7 +48,7 @@ export default function LayoutSelector({
     <div className="screen">
       <div className="eyebrow">Buoc 1 / 4</div>
       <Title level={2} style={{ margin: 0, textAlign: "center" }}>
-        Chon so kieu anh trong khung in
+        Chọn số kiểu ảnh trong khung in
       </Title>
       <Paragraph
         style={{
@@ -56,9 +56,9 @@ export default function LayoutSelector({
           textAlign: "center",
           color: "var(--lilac, #a79cc0)",
         }}>
-        Chon bo cuc khung anh cuoi cung, sau do chon so kieu se chup trong phien
-        nay (mac dinh {DEFAULT_TOTAL_SHOTS}, toi da {MAX_TOTAL_SHOTS}). Ban se
-        tu chon ra anh dep nhat de dat vao cac o cua khung.
+        Chọn bố cục khung ảnh cuối cùng, sau đó chọn số lần chụp ảnh trong lần
+        này (mặc định {DEFAULT_TOTAL_SHOTS}, tối đa {MAX_TOTAL_SHOTS}). Bạn sẽ
+        lựa chọn ảnh ưng ý nhất đẻ lựa vào các khung ảnh.
       </Paragraph>
 
       <div className="layout-grid">
@@ -85,7 +85,7 @@ export default function LayoutSelector({
       {value && (
         <div className="shotcount-block">
           <label className="shotcount-block__label" htmlFor="shotCount">
-            So kieu se chup trong phien nay
+            Số kiểu chụp trong lần này
           </label>
           <Select
             id="shotCount"
@@ -99,7 +99,7 @@ export default function LayoutSelector({
 
       <Space>
         <Button icon={<ArrowLeftOutlined />} onClick={onBack}>
-          Quay lai
+          Quay lại
         </Button>
         <Button
           type="primary"
@@ -107,7 +107,7 @@ export default function LayoutSelector({
           onClick={onConfirm}
           iconPosition="end"
           icon={<ArrowRightOutlined />}>
-          Bat dau chup
+          Bắt đầu chụp
         </Button>
       </Space>
     </div>

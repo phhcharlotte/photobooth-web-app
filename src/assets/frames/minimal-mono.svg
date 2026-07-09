@@ -1,0 +1,8 @@
+<svg viewBox="0 0 1200 1800" xmlns="http://www.w3.org/2000/svg">
+
+  <rect x="30" y="30" width="1140" height="1740" fill="none" stroke="#fdf8ef" stroke-width="3"/>
+  <rect x="42" y="42" width="1116" height="1716" fill="none" stroke="#fdf8ef" stroke-width="1"/>
+  <rect x="0" y="1690" width="1200" height="2" fill="#fdf8ef"/>
+  <text x="600.0" y="1744" font-family="Georgia, serif" font-size="40" fill="#fdf8ef" text-anchor="middle" letter-spacing="14">PHOTO BOOTH</text>
+
+</svg>

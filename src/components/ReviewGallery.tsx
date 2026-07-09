@@ -51,19 +51,19 @@ export default function ReviewGallery({
       <div style={{ textAlign: "center" }}>
         <div className="eyebrow">Buoc 3 / 4</div>
         <Title level={2} style={{ margin: "6px 0 2px" }}>
-          Chon anh ung y nhat
+          Chọn ảnh ưng ý
         </Title>
         <Paragraph style={{ maxWidth: 520, color: "var(--lilac, #a79cc0)" }}>
-          Khung ban chon co{" "}
+          Khung bạn chọn có{" "}
           <Text strong style={{ color: "#ffb43c" }}>
             {required}
           </Text>{" "}
-          o anh. Hay chon dung {required} kieu dep nhat — thu tu ban chon se la
-          thu tu dat vao khung.
+          o ảnh Hãy chọn đúng{required} kiểu đẹp nhất — thứ tự chọn sẽ là thứ tự
+          vào khung.
         </Paragraph>
         <Text
           style={{ fontFamily: "monospace", color: "var(--lilac, #a79cc0)" }}>
-          Da chon{" "}
+          Đã chọn{" "}
           <Text strong style={{ color: "#ffb43c" }}>
             {picked.length}
           </Text>{" "}
@@ -80,7 +80,7 @@ export default function ReviewGallery({
               key={photo.id}
               className={`review-thumb ${isPicked ? "picked" : ""}`}
               onClick={() => toggle(photo.id)}>
-              <img src={photo.dataUrl} alt="Kieu anh da chup" />
+              <img src={photo.dataUrl} alt="Kiểu ảnh đã chụp" />
               {isPicked && (
                 <Badge
                   count={order + 1}

@@ -6,7 +6,8 @@ import {
   ExportOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
-import { composeFinalImage } from "../lib/compositor";
+import { composeFinalImage, cropFrameToCanvasAspect } from "../lib/compositor";
+import { BUILT_IN_FRAMES, isBuiltInFrame } from "../data/builtInFrames";
 import { CapturedPhoto, FrameAsset, LayoutType } from "../types";
 
 const { Title, Paragraph } = Typography;
@@ -26,7 +27,9 @@ export default function FrameComposer({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [library, setLibrary] = useState<FrameAsset[]>([]);
-  const [selectedFrame, setSelectedFrame] = useState<FrameAsset | null>(null);
+  const [selectedFrame, setSelectedFrame] = useState<FrameAsset | null>(
+    BUILT_IN_FRAMES[0] ?? null,
+  );
   const [loadingLib, setLoadingLib] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -53,11 +56,24 @@ export default function FrameComposer({
   async function handleUploadFrame() {
     setUploading(true);
     try {
-      const asset = await window.electronAPI.selectFrameImage();
-      if (asset) {
-        setLibrary((prev) => [asset, ...prev]);
-        setSelectedFrame(asset);
-      }
+      // Buoc 1: mo hop thoai chon file goc (chua qua xu ly)
+      const picked = await window.electronAPI.pickFrameFile();
+      if (!picked) return;
+
+      // Buoc 2: tu dong cat (center-crop) cho khop dung ty le khung in,
+      // tranh bi keo meo khi ghep vao anh cuoi cung
+      const croppedDataUrl = await cropFrameToCanvasAspect(picked.dataUrl);
+
+      // Buoc 3: luu ban da xu ly vao thu vien tren may
+      const asset = await window.electronAPI.saveFrameAsset({
+        dataUrl: croppedDataUrl,
+        name: picked.name,
+      });
+
+      setLibrary((prev) => [asset, ...prev]);
+      setSelectedFrame(asset);
+    } catch (e) {
+      console.error("Loi xu ly khung vien:", e);
     } finally {
       setUploading(false);
     }
@@ -88,6 +104,39 @@ export default function FrameComposer({
     }
   }
 
+  function renderFrameTile(asset: FrameAsset) {
+    const deletable = !isBuiltInFrame(asset);
+    return (
+      <div
+        key={asset.path}
+        className={`frame-lib-item ${selectedFrame?.path === asset.path ? "selected" : ""}`}
+        onClick={() => setSelectedFrame(asset)}
+        title={asset.name}>
+        <img src={asset.dataUrl} alt={asset.name} />
+        {deletable && (
+          <Popconfirm
+            title="Xoa khung vien nay?"
+            okText="Xoa"
+            cancelText="Thoi"
+            onConfirm={(e) => {
+              e?.stopPropagation();
+              handleDeleteFrame(asset);
+            }}
+            onCancel={(e) => e?.stopPropagation()}>
+            <Button
+              className="frame-lib-item__delete"
+              size="small"
+              shape="circle"
+              danger
+              icon={<CloseOutlined />}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </Popconfirm>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className="screen-scroll"
@@ -103,8 +152,8 @@ export default function FrameComposer({
           Ghep khung vien
         </Title>
         <Paragraph style={{ maxWidth: 520, color: "var(--lilac, #a79cc0)" }}>
-          Chon 1 khung vien co san hoac tai anh khung vien rieng tu may tinh
-          (PNG nen trong suot se dep nhat).
+          Chon 1 khung mau co san, hoac tai anh khung vien rieng tu may tinh —
+          anh se duoc tu dong cat cho khop ty le khung in, khong bi meo.
         </Paragraph>
       </div>
 
@@ -115,70 +164,51 @@ export default function FrameComposer({
 
         <div className="compose-side">
           <div>
-            <div className="side-block-title">Khung vien cua ban</div>
+            <div className="side-block-title">Khung mau co san</div>
+            <div className="frame-lib-grid">
+              <div
+                className={`frame-lib-item ${!selectedFrame ? "selected" : ""}`}
+                onClick={() => setSelectedFrame(null)}
+                title="Khong dung khung vien">
+                <div className="frame-lib-item__empty-label">Khong khung</div>
+              </div>
+              {BUILT_IN_FRAMES.map(renderFrameTile)}
+            </div>
+          </div>
+
+          <div>
+            <div className="side-block-title">Khung rieng cua ban</div>
             <Button
               block
               type="dashed"
               size="large"
               icon={<UploadOutlined />}
               loading={uploading}
-              onClick={handleUploadFrame}>
+              onClick={handleUploadFrame}
+              style={{ marginBottom: 12 }}>
               {uploading
-                ? "Dang mo hop thoai..."
+                ? "Dang xu ly anh..."
                 : "Tai anh khung vien tu may tinh"}
             </Button>
-            <Paragraph className="no-frame-note">
-              Goi y: dung file PNG nen trong suot, kich thuoc doc (ty le ~2:3)
-              de khung phu khop toan bo anh.
-            </Paragraph>
-          </div>
 
-          <div>
-            <div className="side-block-title">Thu vien khung da luu</div>
             {loadingLib ? (
               <Spin />
             ) : library.length === 0 ? (
               <Empty
-                description="Chua co khung vien nao"
+                description="Chua co khung nao ban tu tai len"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               />
             ) : (
               <div className="frame-lib-grid">
-                <div
-                  className={`frame-lib-item ${!selectedFrame ? "selected" : ""}`}
-                  onClick={() => setSelectedFrame(null)}
-                  title="Khong dung khung vien">
-                  <div className="frame-lib-item__empty-label">Khong khung</div>
-                </div>
-                {library.map((asset) => (
-                  <div
-                    key={asset.path}
-                    className={`frame-lib-item ${selectedFrame?.path === asset.path ? "selected" : ""}`}
-                    onClick={() => setSelectedFrame(asset)}
-                    title={asset.name}>
-                    <img src={asset.dataUrl} alt={asset.name} />
-                    <Popconfirm
-                      title="Xoa khung vien nay?"
-                      okText="Xoa"
-                      cancelText="Thoi"
-                      onConfirm={(e) => {
-                        e?.stopPropagation();
-                        handleDeleteFrame(asset);
-                      }}
-                      onCancel={(e) => e?.stopPropagation()}>
-                      <Button
-                        className="frame-lib-item__delete"
-                        size="small"
-                        shape="circle"
-                        danger
-                        icon={<CloseOutlined />}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </Popconfirm>
-                  </div>
-                ))}
+                {library.map(renderFrameTile)}
               </div>
             )}
+
+            <Paragraph className="no-frame-note">
+              Goi y: dung file PNG nen trong suot se dep nhat — anh se tu dong
+              duoc cat vua ty le khung in (2:3), phan giua van trong suot de lo
+              anh chup.
+            </Paragraph>
           </div>
 
           <Space>

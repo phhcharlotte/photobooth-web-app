@@ -9,7 +9,11 @@ declare global {
         fileNameHint?: string;
         mime?: string;
       }) => Promise<SaveMediaResult>;
-      selectFrameImage: () => Promise<FrameAsset | null>;
+      pickFrameFile: () => Promise<{ name: string; dataUrl: string } | null>;
+      saveFrameAsset: (payload: {
+        dataUrl: string;
+        name: string;
+      }) => Promise<FrameAsset>;
       getFramesLibrary: () => Promise<FrameAsset[]>;
       deleteFrame: (filePath: string) => Promise<boolean>;
       openOutputFolder: (kind?: "photo" | "video" | "export") => Promise<void>;

@@ -77,7 +77,11 @@ export function getLayoutSlots(layout: LayoutType): Slot[] {
 }
 
 /** Ve 1 anh vao 1 o theo kieu "cover" (giu ty le, cat phan du, lap day o) */
-export function drawImageCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, slot: Slot) {
+export function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  slot: Slot,
+) {
   const slotRatio = slot.w / slot.h;
   const imgRatio = img.width / img.height;
 
@@ -103,7 +107,14 @@ export function drawImageCover(ctx: CanvasRenderingContext2D, img: HTMLImageElem
   ctx.restore();
 }
 
-function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+function roundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -124,6 +135,45 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 /**
+ * Tu dong cat (center-crop, kieu "cover") anh khung vien nguoi dung tai len
+ * cho khop dung ty le canvas (CANVAS_WIDTH x CANVAS_HEIGHT), giu nguyen
+ * vung trong suot cua PNG (khong to nen). Nho vay khi ghep vao anh cuoi
+ * cung, khung se khong bi keo meo du anh goc co ty le khac.
+ */
+export async function cropFrameToCanvasAspect(
+  dataUrl: string,
+): Promise<string> {
+  const img = await loadImage(dataUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = CANVAS_WIDTH;
+  canvas.height = CANVAS_HEIGHT;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Khong lay duoc context 2D");
+
+  const targetRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
+  const srcRatio = img.width / img.height;
+
+  let sx = 0;
+  let sy = 0;
+  let sw = img.width;
+  let sh = img.height;
+
+  if (srcRatio > targetRatio) {
+    // Anh rong hon khung dich -> cat bot 2 ben trai/phai
+    sw = img.height * targetRatio;
+    sx = (img.width - sw) / 2;
+  } else {
+    // Anh cao hon khung dich -> cat bot tren/duoi
+    sh = img.width / targetRatio;
+    sy = (img.height - sh) / 2;
+  }
+
+  // KHONG fillRect nen - giu canvas trong suot de PNG alpha duoc bao toan
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  return canvas.toDataURL("image/png");
+}
+
+/**
  * Ve toan bo layout: nen trang -> tung anh vao o -> khung vien (neu co) de len tren cung.
  * Khung vien nen la PNG co nen trong suot, kich thuoc bat ky (se duoc keo gian vua canvas).
  */
@@ -131,7 +181,7 @@ export async function composeFinalImage(
   canvas: HTMLCanvasElement,
   layout: LayoutType,
   photoDataUrls: string[],
-  frameDataUrl: string | null
+  frameDataUrl: string | null,
 ): Promise<string> {
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;

@@ -201,7 +201,7 @@ export default function CaptureSession({
           });
           resolve(res.path);
         } catch (e) {
-          console.error("Loi luu video:", e);
+          console.error("Lỗi lưu video:", e);
           resolve(null);
         }
       };
@@ -220,7 +220,7 @@ export default function CaptureSession({
     <div className="screen">
       <div className="eyebrow">Buoc 2 / 4</div>
       <Title level={2} style={{ margin: 0, textAlign: "center" }}>
-        Dang chup — giu nguyen nu cuoi!
+        Đang chụp - giữ nguyên dáng xinh
       </Title>
       <p className="pose-hint">
         {POSE_HINTS[Math.min(shotIndex, POSE_HINTS.length - 1)]}
@@ -264,7 +264,7 @@ export default function CaptureSession({
         {!ready && !error && (
           <div className="capture-overlay-center">
             <Spin size="large" />
-            <span className="pose-hint">Dang khoi dong camera...</span>
+            <span className="pose-hint">Đang khởi động camera...</span>
           </div>
         )}
 
@@ -277,12 +277,12 @@ export default function CaptureSession({
         {finishing && (
           <div className="capture-overlay-center capture-overlay-center--dim">
             <Spin size="large" />
-            <span className="pose-hint">Dang luu video, cho chut...</span>
+            <span className="pose-hint">Đang lưu video, chờ xíu...</span>
           </div>
         )}
       </div>
 
-      <Button onClick={onCancel}>Huy phien chup</Button>
+      <Button onClick={onCancel}>Huỷ chụp</Button>
     </div>
   );
 }
