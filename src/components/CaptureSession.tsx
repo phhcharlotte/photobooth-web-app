@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Progress, Spin, Tag, Typography } from "antd";
-import { VideoCameraOutlined } from "@ant-design/icons";
+import { Button, Progress, Result, Spin, Tag, Typography } from "antd";
+import { CameraOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import {
   COUNTDOWN_SECONDS,
   FLASH_DURATION_MS,
@@ -17,18 +17,18 @@ interface Props {
   onComplete: (result: SessionResult) => void;
   onCancel: () => void;
 }
-
+type Gate = "checking" | "no-device" | "prompt" | "denied" | "recording";
 const POSE_HINTS = [
-  "San sang...",
-  "Tao dang tu nhien nhe!",
-  "Cuoi that tuoi",
-  "Doi goc nghieng nao",
-  "Nhin thang ong kinh",
-  "Tao dang vui nhon",
-  "Gan lai nhau chut",
-  "Bung no nang luong!",
-  "Nhe nhang mot chut",
-  "Kieu cuoi cung, het minh nao!",
+  "Sẵn sàng...",
+  "Tạo dáng tự nhiên!",
+  "Cười thật tươi",
+  "Đổi góc nào",
+  "Nhìn thẳng ống kính",
+  "Tạo dáng vui nhộn",
+  "Gần lại nhau 1 chút",
+  "Bùng nổ năng lượng nào!",
+  "Nhẹ nhàng một chút",
+  "Kiểu cuối cùng, hết mình nào!",
 ];
 
 function pickMimeType(): string {
@@ -55,8 +55,7 @@ export default function CaptureSession({
   const chunksRef = useRef<Blob[]>([]);
   const photosRef = useRef<CapturedPhoto[]>([]);
 
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [gate, setGate] = useState<Gate>("checking");
   const [shotIndex, setShotIndex] = useState(0);
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
   const [flashState, setFlashState] = useState<"idle" | "active" | "fading">(
@@ -64,60 +63,78 @@ export default function CaptureSession({
   );
   const [finishing, setFinishing] = useState(false);
 
-  // ---- Khoi dong camera + bat dau ghi hinh video ----
+  // ---- Buoc 0: kiem tra may co webcam khong (chua xin quyen) ----
   useEffect(() => {
     let cancelled = false;
 
-    async function start() {
+    async function checkDevices() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: VIDEO_WIDTH, height: VIDEO_HEIGHT },
-          audio: true,
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-
-        const recorder = new MediaRecorder(stream, {
-          mimeType: pickMimeType(),
-          videoBitsPerSecond: VIDEO_BITRATE,
-        });
-        recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) chunksRef.current.push(e.data);
-        };
-        recorderRef.current = recorder;
-        recorder.start(1000);
-
-        setReady(true);
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasCamera = devices.some((d) => d.kind === "videoinput");
+        if (cancelled) return;
+        setGate(hasCamera ? "prompt" : "no-device");
       } catch (err) {
-        console.error(err);
-        setError(
-          "Khong the truy cap camera/micro. Hay kiem tra quyen truy cap camera cho ung dung trong Settings.",
-        );
+        console.error("Loi kiem tra thiet bi camera:", err);
+        if (!cancelled) setGate("prompt"); // khong chan luong, de nguoi dung tu bam xin quyen
       }
     }
 
-    start();
-
+    checkDevices();
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  async function requestCameraAccess() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: VIDEO_WIDTH, height: VIDEO_HEIGHT },
+        audio: true,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType: pickMimeType(),
+        videoBitsPerSecond: VIDEO_BITRATE,
+      });
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorderRef.current = recorder;
+      recorder.start(1000);
+
+      setGate("recording");
+    } catch (err: any) {
+      console.error(err);
+      if (
+        err?.name === "NotFoundError" ||
+        err?.name === "DevicesNotFoundError"
+      ) {
+        setGate("no-device");
+      } else {
+        // NotAllowedError / PermissionDeniedError / SecurityError...
+        setGate("denied");
+      }
+    }
+  }
+
+  // Don camera khi roi man hinh trong moi truong hop
+  useEffect(() => {
+    return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (recorderRef.current && recorderRef.current.state !== "inactive") {
         recorderRef.current.stop();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---- Vong dem nguoc cho tung kieu chup ----
+  // ---- Vong dem nguoc cho tung kieu chup (chi chay khi da vao "recording") ----
   useEffect(() => {
-    if (!ready || finishing) return;
+    if (gate !== "recording" || finishing) return;
     if (shotIndex >= totalShots) {
       finalizeSession();
       return;
@@ -131,7 +148,7 @@ export default function CaptureSession({
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, countdown, shotIndex, finishing]);
+  }, [gate, countdown, shotIndex, finishing]);
 
   function capturePhoto() {
     const video = videoRef.current;
@@ -167,7 +184,7 @@ export default function CaptureSession({
           p.id === photo.id ? { ...p, savedPath: res.path } : p,
         );
       })
-      .catch((e) => console.error("Loi luu anh:", e));
+      .catch((e) => console.error("Lỗi lưu ảnh:", e));
 
     // Hieu ung flash
     setFlashState("active");
@@ -201,7 +218,7 @@ export default function CaptureSession({
           });
           resolve(res.path);
         } catch (e) {
-          console.error("Lỗi lưu video:", e);
+          console.error("Loi luu video:", e);
           resolve(null);
         }
       };
@@ -215,6 +232,94 @@ export default function CaptureSession({
   const pct = Math.round(
     ((COUNTDOWN_SECONDS - countdown) / COUNTDOWN_SECONDS) * 100,
   );
+
+  // -------------------------------------------------------------------------
+  // Man hinh gac cong: dang kiem tra thiet bi
+  // -------------------------------------------------------------------------
+  if (gate === "checking") {
+    return (
+      <div className="screen">
+        <Spin size="large" />
+        <span className="pose-hint">Đang kiểm tra webcam...</span>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Man hinh gac cong: khong tim thay webcam
+  // -------------------------------------------------------------------------
+  if (gate === "no-device") {
+    return (
+      <div className="screen">
+        <Result
+          status="warning"
+          title="Không tìm thấy webcam"
+          subTitle="Máy tính của bạn chưa kết nối webcam nào. Hãy cắm webcam vào rồi thử lại."
+          extra={
+            <Button type="primary" onClick={onCancel}>
+              Quay lại
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Man hinh gac cong: xin quyen truoc khi vao chup
+  // -------------------------------------------------------------------------
+  if (gate === "prompt") {
+    return (
+      <div className="screen">
+        <div className="eyebrow">Buoc 2 / 4</div>
+        <Title level={2} style={{ margin: 0, textAlign: "center" }}>
+          Cho phép sử dụng Camera &amp; Micro
+        </Title>
+        <p className="pose-hint" style={{ maxWidth: 460, textAlign: "center" }}>
+          Ứng dụng cầm quyền truy cập vào camera để chụp ảnh và quyền truy cập
+          micro để quay video có tiếng.
+        </p>
+        <Button
+          type="primary"
+          size="large"
+          icon={<CameraOutlined />}
+          onClick={requestCameraAccess}>
+          Cho phép Camera &amp; Micro
+        </Button>
+        <Button onClick={onCancel}>Quay lại</Button>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Man hinh gac cong: nguoi dung tu choi quyen
+  // -------------------------------------------------------------------------
+  if (gate === "denied") {
+    return (
+      <div className="screen">
+        <Result
+          status="error"
+          title="Chưa được cấp quyền Camera / Micro"
+          subTitle="Bạn đã từ chối hoặc hệ điều hành chặn quyền truy cập. Vào Settings của máy (Privacy & Security -> Camera/Microphone) để cấp quyền cho ứng dụng, rồi bấm thử lại."
+          extra={
+            <>
+              <Button
+                type="primary"
+                onClick={requestCameraAccess}
+                style={{ marginRight: 12 }}>
+                Thử lại
+              </Button>
+              <Button onClick={onCancel}>Quay lại</Button>
+            </>
+          }
+        />
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Man hinh dang chup (gate === "recording")
+  // -------------------------------------------------------------------------
 
   return (
     <div className="screen">
@@ -260,19 +365,6 @@ export default function CaptureSession({
         <div
           className={`flash-overlay ${flashState !== "idle" ? flashState : ""}`}
         />
-
-        {!ready && !error && (
-          <div className="capture-overlay-center">
-            <Spin size="large" />
-            <span className="pose-hint">Đang khởi động camera...</span>
-          </div>
-        )}
-
-        {error && (
-          <div className="capture-overlay-center">
-            <span className="pose-hint">{error}</span>
-          </div>
-        )}
 
         {finishing && (
           <div className="capture-overlay-center capture-overlay-center--dim">
