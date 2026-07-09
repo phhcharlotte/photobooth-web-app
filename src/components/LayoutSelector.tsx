@@ -46,7 +46,7 @@ export default function LayoutSelector({
 
   return (
     <div className="screen">
-      <div className="eyebrow">Buoc 1 / 4</div>
+      <div className="eyebrow">Bước 1 / 4</div>
       <Title level={2} style={{ margin: 0, textAlign: "center" }}>
         Chọn số kiểu ảnh trong khung in
       </Title>

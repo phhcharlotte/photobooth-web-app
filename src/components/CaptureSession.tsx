@@ -218,7 +218,7 @@ export default function CaptureSession({
 
   return (
     <div className="screen">
-      <div className="eyebrow">Buoc 2 / 4</div>
+      <div className="eyebrow">Bước 2 / 4</div>
       <Title level={2} style={{ margin: 0, textAlign: "center" }}>
         Đang chụp - giữ nguyên dáng xinh
       </Title>

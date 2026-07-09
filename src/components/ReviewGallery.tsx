@@ -49,7 +49,7 @@ export default function ReviewGallery({
         gap: 24,
       }}>
       <div style={{ textAlign: "center" }}>
-        <div className="eyebrow">Buoc 3 / 4</div>
+        <div className="eyebrow">Bước 3 / 4</div>
         <Title level={2} style={{ margin: "6px 0 2px" }}>
           Chọn ảnh ưng ý
         </Title>
@@ -58,8 +58,8 @@ export default function ReviewGallery({
           <Text strong style={{ color: "#ffb43c" }}>
             {required}
           </Text>{" "}
-          o ảnh Hãy chọn đúng{required} kiểu đẹp nhất — thứ tự chọn sẽ là thứ tự
-          vào khung.
+          kiểu ảnh Hãy chọn đúng{required} kiểu đẹp nhất — thứ tự chọn sẽ là thứ
+          tự vào khung.
         </Paragraph>
         <Text
           style={{ fontFamily: "monospace", color: "var(--lilac, #a79cc0)" }}>

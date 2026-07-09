@@ -147,7 +147,7 @@ export default function FrameComposer({
         gap: 24,
       }}>
       <div style={{ textAlign: "center" }}>
-        <div className="eyebrow">Buoc 4 / 4</div>
+        <div className="eyebrow">Bước 4 / 4</div>
         <Title level={2} style={{ margin: "6px 0 2px" }}>
           Ghép khung viền
         </Title>

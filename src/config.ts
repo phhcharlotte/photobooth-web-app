@@ -5,7 +5,7 @@
  */
 
 /** So giay dem nguoc truoc moi lan chup (mac dinh: 10s) */
-export const COUNTDOWN_SECONDS = 10;
+export const COUNTDOWN_SECONDS = 8;
 
 /** So kieu chup mac dinh khi vao man hinh chon layout (nguoi dung co the doi trong o select) */
 export const DEFAULT_TOTAL_SHOTS = 6;
